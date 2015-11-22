@@ -1,0 +1,79 @@
+---
+title: "Exploring differences in LD levels between lifespan-related loci"
+author: "Ilya Zhbannikov"
+date: "22 November 2015"
+output: pdf_document
+---
+
+#Project Summary
+
+This is a scientific application that was developed in order to explore differences in Linkage Disequilibrium (LD) effects between lifespan-related loci.
+
+The roles of genetic and non-genetic factors in aging and longevity-related traits are intensively studied during last decades. However, many results of these studies remain non-replicaded in studies of independent populations. The purpose of this project (and corresponding application) is to investigate the role of LD in modulating estimated effects of genetic variants on longevity.
+
+# Method
+
+We considered the two SNP loci associated with lifespan in the absence of Linkage Disequilibrium (LD) and investigated how different levels of LD between these loci influence association of the minor allele in the first locus with lifespan in hyphotherical study populations with the same initial frequences of minor alleles and mortality risks for carriers of each of four genotypes in these loci.
+
+## Description of variables and assumptions:
+### Main panel
+We consider two loci, $V_{1}=(0,1)$ and $V_{2}=(0,1)$, where the notation "0" corresponds major- and "1" - to minor allele.
+
+Let $t$ be the time, in years, describes a person's age.
+
+#### Proportion hazard section
+
+$m_{1}(t)$, $m_{2}(t)$ - are the frequences of the minor allele in locus 1 and 2, respectively.
+
+$m_{00}(t)$, $m_{10}(t)$, $m_{01}(t)$, $m_{11}(t)$ - genotype frequences 
+
+$m_{00}$, $m_{10}$, $m_{01}$, $m_{11}$ - initial values of genotype frequences of genotypes, which values can be set using the sliders under the "Proportion hazard" section.
+
+If the checkbox "Freeze P1, P2" is set, then only $m_{11}$ can be adjusted, and $m_{00}$, $m_{10}$, $m_{01}$ are calculated based on the value of  $m_{11}$.
+
+#### Mortality section
+
+Denote $\mu_{ij}(t)$ to be the mortality risk for each genotype ("00", "01", "10", "11").
+
+Denote $\mu_{00}(t)$ to be the mortality risk for the genotype of "00". Initial value for the $\mu_{00}(t)$ can be set using corresponding slider under the "Mortality" section.
+
+Other mortality risks corresponding to other genotypes ("01", "10", "11") can be calculated from the following equations:
+
+#####First model:
+$\mu_{10} = \mu_{00}(1 + D_1)$
+$\mu_{01} = \mu_{00}(1 + D_2)$
+$\mu_{11} = \mu{00}(1 + D_1 + D_2)$
+
+Where $D_1$, $D_2$ are the increments to genotype's relative risks associated with the presence of minor alleles in the first and in the second loci, respectively.
+
+#####Second model:
+
+$\mu_{10} = \mu_{00}H_1$
+$\mu_{01} = \mu_{00}H_2$
+$\mu_{11} = \mu{00}H_1H_2$
+
+Where $H_1$, $H_2$ are relative risks of genotypes (1,0) and (0,1) with respect to genotype (0,0) and $H_1H_2$ is relative risk of genotypes (1,1) with respect to genotype (0,0).
+
+The choice between the two models can be made using corresponding checkbox "$D_1,D_2$".
+
+#### Main Plots panel
+
+$m_1(t)$, $m_2(t)$ - are the frequences of the minor alleles in locus 1 and 2 respectively.
+
+$LD(t)$ - Linkage Disequilibrium between these two loci.
+
+$S(t)$ - Survival function for the population.
+
+$m_{ij}(t)$ - are the frequences of the minor allele in locus 1 and 2, respectively.
+
+Button "Save" saves the plots as a .png image.
+
+Is the checkbox "No title" is set, then figures are saved without titles.
+
+#### Mortality plots panel
+
+Plot $\mu_{1}(t),\mu_{0}(t)$ shows mortality changes overtime for locus 1 and 2 respectively.
+
+Button "Save" saves the plots as a .png image.
+
+Is the checkbox "No title" is set, then figure is saved without titles.
