@@ -48,7 +48,15 @@ shinyUI(fluidPage(
         tabPanel("Mortality", 
                  plotOutput("mortalityPlot",height = 480), 
                  downloadButton("downloadPlotMu", label="Save"),
-                 checkboxInput("notitle_mortality", "No title", value = FALSE))
+                 checkboxInput("notitle_mortality", "No title", value = FALSE)),
+        tabPanel("MAF", 
+                 plotOutput("mafPlot",height = 480), 
+                 downloadButton("downloadPlotMAF", label="Save"),
+                 checkboxInput("notitle_maf", "No title", value = FALSE)),
+        tabPanel("LD", 
+                 plotOutput("ldPlot",height = 480), 
+                 downloadButton("downloadPlotLD", label="Save"),
+                 checkboxInput("notitle_ld", "No title", value = FALSE))
       )
       
     )
