@@ -1,0 +1,190 @@
+setwd("~/Projects/ld_effects/")
+library(ggplot2)
+library(grid)
+library(extrafont)
+source("multiplot.R")
+
+oldState<-NULL
+newState<-NULL
+t0 <- NULL
+pvv1 <- NULL
+pvv2 <- NULL
+m00 <- NULL
+m10 <- NULL
+m01 <- NULL
+
+
+calc <- function(pars) {
+  
+  m00 <- pars[1]
+  m01 <- pars[2]
+  m10 <- pars[3]
+  m11 <- pars[4]
+  
+  mu10 <- pars[5]
+  mu00 <- pars[6]
+  mu11 <- pars[7]
+  mu01 <- pars[8]
+  
+  m00t <- function(t) {
+    m00*exp(-1*mu00*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+  }
+  
+  m01t <- function(t) {
+    m01*exp(-1*mu01*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+  }
+  
+  m11t <- function(t) {
+    m11*exp(-1*mu11*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+  }
+  
+  m10t <- function(t) {
+    m10*exp(-1*mu10*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+  }
+  
+  
+  t1 <- pars[9]
+  t2 <- pars[10]
+  t0 <<- t1
+  res <- matrix(ncol=10,nrow=0)
+  
+  k1carr <- 1/(m10 + m11) 
+  k1non <- 1/(m01 + m00)
+  for(i in t1:t2) {
+    
+    k <- m00*exp(-1*mu00*(i-t1)) + m01*exp(-1*mu01*(i-t1)) + m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1))
+    m1t <- (m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1)))/k
+    m2t <- (m01*exp(-1*mu01*(i-t1)) + m11*exp(-1*mu11*(i-t1)))/k
+    
+    S1carr <- (m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1)))*k1carr
+    S1non <- (m01*exp(-1*mu01*(i-t1)) + m00*exp(-1*mu00*(i-t1)))*k1non
+    
+    ld <- round(m11t(i) - (m10t(i) + m11t(i))*(m01t(i) + m11t(i)),8)
+    
+    res <- rbind(res, c(i, m00t(i), m01t(i), m11t(i), m10t(i), m1t, m2t, S1carr, S1non, ld))
+  
+  }
+  
+  colnames(res) <- c("t", "m00", "m01", "m11", "m10", "m1t", "m2t", "S1carr", "S1non", "ld")
+  
+  dd <- list()
+  dd$m=res
+  dd
+}
+
+
+# Define server logic
+data <- function(vals, dcase=FALSE) {
+    
+  m00 <<- vals[1]
+  m01 <<- vals[3]
+  m10 <<- vals[2]
+  m11 <<- vals[4]
+    
+  mu00 <- vals[5]
+  
+  if(dcase == TRUE) {
+    D1 <- vals[6]
+    D2 <- vals[7]
+      mu10 <- mu00*(1+D1)
+      mu01 <- mu00*(1+D2)
+      mu11 <- mu00*(1+D1 + D2)
+  } else {
+    H1 <- vals[6]
+    H2 <- vals[7]
+    mu10 <- mu00*H1
+    mu01 <- mu00*H2
+    mu11 <- mu00*H1*H2
+  }
+    
+  t1 <- vals[8]
+  t2 <- vals[9]
+  #-----------------#
+    
+  dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
+  pvv1 <<- m10 + m11
+  pvv2 <<- m01 + m11
+      
+  dd$mu00 <- mu00
+  dd$mu10 <- mu10
+  dd$mu01 <- mu01
+  dd$mu11 <- mu11
+    
+  dd
+}
+  
+  
+mPlot <- function(cols=1, save=F, params){
+    
+    dd <- data(params)
+    m <- dd$m
+    
+    pm1 <- ggplot(data=data.frame(m), aes(t)) + geom_line(aes(y = m1t,color='m1'),cex=2) + theme_bw() +
+      xlab("t") + ylab("m1,m2(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) + 
+      geom_line(aes(y = m2t,color='m2', color='m2'),cex=2) + 
+      scale_colour_manual(values=c("red","blue4"))
+    
+    # LD
+    
+    pld <- ggplot(data=data.frame(m), aes(t)) + geom_line(aes(y = ld,color='LD(t)'),cex=2) + theme_bw() +
+      xlab("t") + ylab("LD(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+      theme(legend.position="none")
+    
+    ps = ggplot(data=data.frame(m), aes(t)) + theme_bw() +
+      geom_line(aes(y = S1carr,color='S1carr'),cex=2) +
+      geom_line(aes(y = S1non, color="S1non"), linetype="dashed",cex=2) +
+      xlab("t") + ylab("S(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) +
+      scale_colour_manual(values=c("red","blue4"))
+    
+    pmij=ggplot(data=data.frame(m), aes(t)) + theme_bw() +
+      geom_line(aes(y = m00,color='m00', size=Mij),cex=2) +
+      geom_line(aes(y = m01,color='m01', size=Mij),cex=2) +
+      geom_line(aes(y = m10,color='m10', size=Mij),cex=2) +
+      geom_line(aes(y = m11,color='m11', size=Mij),cex=2) +
+      xlab("t") + ylab("mij(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+      theme(legend.position=c(0.9, .5), legend.title=element_blank(), legend.text = element_text(size = 10))
+      
+    multiplot(pm1, pld, ps, pmij, cols=cols)
+}
+  
+muPlot <- function(cols=1, params, plot_text="", tx=35, ty=0.07, fsz=8, dflag=FALSE) {
+  dd <- data(params, dcase=dflag)
+  t1 <- params[8]
+  t2 <- params[9]
+  m <- dd$m
+  
+  m0t <- 1 - m[,"m1t"]
+  mu1 <- dd$mu10*m[,"m10"]/m[,"m1t"] + dd$mu11*m[,"m11"]/m[,"m1t"]
+    
+  mu0 <- dd$mu00*m[,"m00"]/m0t + dd$mu01*m[,"m01"]/m0t
+  mu <- cbind(t=t1:t2, mu1=mu1, mu0=mu0)
+    
+  pmu <- ggplot(data=data.frame(mu), aes(t)) + geom_line(aes(y = mu1,color="mu1"),cex=2) + theme_bw() +
+      xlab("t") + ylab("mu1(t),mu0(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) + 
+      scale_colour_manual(values=c("blue4","red")) +
+      geom_line(aes(y = mu0, color="mu0"), linetype="dashed", cex=2) + 
+      annotate("text", x=tx, y=ty, label= plot_text, size=fsz)
+  invisible(pmu)
+}
+
+
+f1A<-muPlot(params=c(0.2, 0.4, 0.4, 0, 0.07, 0.85, 1.5, 30, 105), plot_text = "1A")
+f1B<-muPlot(params=c(0.55, 0.05, 0.05, 0.35, 0.07, 0.85, 1.5, 30, 105), plot_text = "1B", ty=0.075)
+f1C<-muPlot(params=c(0.49, 0.11, 0.11, 0.29, 0.07, 0.85, 1.5, 30, 105), plot_text = "1C")
+f1D<-muPlot(params=c(0.52, 0,	0.14,	0.34,	0.07,	0.8, 1.3, 30, 105), plot_text = "1D", ty=0.072)
+
+postscript("~/Projects/ld_effects/plots/Fig1.eps", width=1800, height=1200, paper = "letter")
+multiplot(f1A, f1C, f1B, f1D, cols = 2)
+dev.off()
+
+f2A<-muPlot(params=c(0.2,	0.4,	0.4,	0,	.07,	-0.2,	0.8, 30, 105), plot_text = "2A", dflag=TRUE)
+f2B<-muPlot(params=c(0.59,	0.01,	0.01,	0.39,	.07,	-0.2,	0.8, 30, 105), plot_text = "2B", ty=0.081, dflag=TRUE)
+f2C<-muPlot(params=c(0.49,	0.11,	0.11,	0.29,	.07,	-0.2,	0.8, 30, 105), plot_text = "2C", dflag=TRUE)
+f2D<-muPlot(params=c(0.59,	0,	0.13,	0.28,	.07,	-0.35,	0.4, 30, 105), plot_text = "2D", ty=0.072, dflag=TRUE)
+
+postscript("~/Projects/ld_effects/plots/Fig2.eps", horizontal = TRUE, paper = "letter")
+multiplot(f2A, f2C, f2B, f2D, cols = 2)
+dev.off()
