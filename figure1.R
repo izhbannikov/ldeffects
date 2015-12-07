@@ -4,15 +4,6 @@ library(grid)
 library(extrafont)
 source("multiplot.R")
 
-oldState<-NULL
-newState<-NULL
-t0 <- NULL
-pvv1 <- NULL
-pvv2 <- NULL
-m00 <- NULL
-m10 <- NULL
-m01 <- NULL
-
 
 calc <- function(pars) {
   
@@ -170,21 +161,23 @@ muPlot <- function(cols=1, params, plot_text="", tx=35, ty=0.07, fsz=8, dflag=FA
   invisible(pmu)
 }
 
-
-f1A<-muPlot(params=c(0.2, 0.4, 0.4, 0, 0.07, 0.85, 1.5, 30, 105), plot_text = "1A")
-f1B<-muPlot(params=c(0.55, 0.05, 0.05, 0.35, 0.07, 0.85, 1.5, 30, 105), plot_text = "1B", ty=0.075)
-f1C<-muPlot(params=c(0.49, 0.11, 0.11, 0.29, 0.07, 0.85, 1.5, 30, 105), plot_text = "1C")
-f1D<-muPlot(params=c(0.52, 0,	0.14,	0.34,	0.07,	0.8, 1.3, 30, 105), plot_text = "1D", ty=0.072)
-
-postscript("~/Projects/ld_effects/plots/Fig1.eps", width=1800, height=1200, paper = "letter")
-multiplot(f1A, f1C, f1B, f1D, cols = 2)
-dev.off()
-
-f2A<-muPlot(params=c(0.2,	0.4,	0.4,	0,	.07,	-0.2,	0.8, 30, 105), plot_text = "2A", dflag=TRUE)
-f2B<-muPlot(params=c(0.59,	0.01,	0.01,	0.39,	.07,	-0.2,	0.8, 30, 105), plot_text = "2B", ty=0.081, dflag=TRUE)
-f2C<-muPlot(params=c(0.49,	0.11,	0.11,	0.29,	.07,	-0.2,	0.8, 30, 105), plot_text = "2C", dflag=TRUE)
-f2D<-muPlot(params=c(0.59,	0,	0.13,	0.28,	.07,	-0.35,	0.4, 30, 105), plot_text = "2D", ty=0.072, dflag=TRUE)
-
-postscript("~/Projects/ld_effects/plots/Fig2.eps", horizontal = TRUE, paper = "letter")
-multiplot(f2A, f2C, f2B, f2D, cols = 2)
-dev.off()
+# Uncomment lines below when you need to make a figure:
+#
+#f1A<-muPlot(params=c(0.2, 0.4, 0.4, 0, 0.07, 0.85, 1.5, 30, 105), plot_text = "1A")
+#f1B<-muPlot(params=c(0.55, 0.05, 0.05, 0.35, 0.07, 0.85, 1.5, 30, 105), plot_text = "1B", ty=0.075)
+#f1C<-muPlot(params=c(0.49, 0.11, 0.11, 0.29, 0.07, 0.85, 1.5, 30, 105), plot_text = "1C")
+#f1D<-muPlot(params=c(0.52, 0,	0.14,	0.34,	0.07,	0.8, 1.3, 30, 105), plot_text = "1D", ty=0.072)
+#
+#
+#postscript("~/Projects/ld_effects/plots/Fig1.eps", width=1800, height=1200, paper = "letter")
+#multiplot(f1A, f1C, f1B, f1D, cols = 2)
+#dev.off()
+#
+#f2A<-muPlot(params=c(0.2,	0.4,	0.4,	0,	.07,	-0.2,	0.8, 30, 105), plot_text = "2A", dflag=TRUE)
+#f2B<-muPlot(params=c(0.59,	0.01,	0.01,	0.39,	.07,	-0.2,	0.8, 30, 105), plot_text = "2B", ty=0.081, dflag=TRUE)
+#f2C<-muPlot(params=c(0.49,	0.11,	0.11,	0.29,	.07,	-0.2,	0.8, 30, 105), plot_text = "2C", dflag=TRUE)
+#f2D<-muPlot(params=c(0.59,	0,	0.13,	0.28,	.07,	-0.35,	0.4, 30, 105), plot_text = "2D", ty=0.072, dflag=TRUE)
+#
+#postscript("~/Projects/ld_effects/plots/Fig2.eps", horizontal = TRUE, paper = "letter")
+#multiplot(f2A, f2C, f2B, f2D, cols = 2)
+#dev.off()

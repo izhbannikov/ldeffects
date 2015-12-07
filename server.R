@@ -269,9 +269,6 @@ shinyServer(function(input, output, session) {
     t2 <- input$time[2]
     m <- dd$m
     m0t <- 1 - m[,"m1t"]
-    print(m[,"m00"]/m0t)
-    print(m0t)
-    print(m[,"m00"])
     mu1 <- dd$mu10*m[,"m10"]/m[,"m1t"] + dd$mu11*m[,"m11"]/m[,"m1t"]
     
     mu0 <- dd$mu00*m[,"m00"]/m0t + dd$mu01*m[,"m01"]/m0t
@@ -427,6 +424,24 @@ shinyServer(function(input, output, session) {
       dev.off()
     }
   )    
+  
+  output$downloadPlotMAF <- downloadHandler(
+    filename = "plot_maf.eps",
+    content = function(file) {
+      postscript(file, width=1800, height=1200, paper = "letter")
+      print(mafPlot(T,1))
+      dev.off()
+    }
+  ) 
+  
+  output$downloadPlotLD <- downloadHandler(
+    filename = "plot_ld.eps",
+    content = function(file) {
+      postscript(file, width=1800, height=1200, paper = "letter")
+      print(ldPlot(T,1))
+      dev.off()
+    }
+  ) 
   
   output$downloadPlotMu <- downloadHandler(
     filename = "plot_mu.eps",
