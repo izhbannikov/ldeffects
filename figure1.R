@@ -104,42 +104,7 @@ data <- function(vals, dcase=FALSE) {
   dd
 }
   
-  
-mPlot <- function(cols=1, save=F, params){
-    
-    dd <- data(params)
-    m <- dd$m
-    
-    pm1 <- ggplot(data=data.frame(m), aes(t)) + geom_line(aes(y = m1t,color='m1'),cex=2) + theme_bw() +
-      xlab("t") + ylab("m1,m2(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) + 
-      geom_line(aes(y = m2t,color='m2', color='m2'),cex=2) + 
-      scale_colour_manual(values=c("red","blue4"))
-    
-    # LD
-    
-    pld <- ggplot(data=data.frame(m), aes(t)) + geom_line(aes(y = ld,color='LD(t)'),cex=2) + theme_bw() +
-      xlab("t") + ylab("LD(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      theme(legend.position="none")
-    
-    ps = ggplot(data=data.frame(m), aes(t)) + theme_bw() +
-      geom_line(aes(y = S1carr,color='S1carr'),cex=2) +
-      geom_line(aes(y = S1non, color="S1non"), linetype="dashed",cex=2) +
-      xlab("t") + ylab("S(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) +
-      scale_colour_manual(values=c("red","blue4"))
-    
-    pmij=ggplot(data=data.frame(m), aes(t)) + theme_bw() +
-      geom_line(aes(y = m00,color='m00', size=Mij),cex=2) +
-      geom_line(aes(y = m01,color='m01', size=Mij),cex=2) +
-      geom_line(aes(y = m10,color='m10', size=Mij),cex=2) +
-      geom_line(aes(y = m11,color='m11', size=Mij),cex=2) +
-      xlab("t") + ylab("mij(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      theme(legend.position=c(0.9, .5), legend.title=element_blank(), legend.text = element_text(size = 10))
-      
-    multiplot(pm1, pld, ps, pmij, cols=cols)
-}
-  
+
 muPlot <- function(cols=1, params, plot_text="", tx=35, ty=0.07, fsz=8, dflag=FALSE) {
   dd <- data(params, dcase=dflag)
   t1 <- params[8]
@@ -153,31 +118,31 @@ muPlot <- function(cols=1, params, plot_text="", tx=35, ty=0.07, fsz=8, dflag=FA
   mu <- cbind(t=t1:t2, mu1=mu1, mu0=mu0)
     
   pmu <- ggplot(data=data.frame(mu), aes(t)) + geom_line(aes(y = mu1,color="mu1"),cex=2) + theme_bw() +
-      xlab("t") + ylab("mu1(t),mu0(t)") + theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10)) + 
+      xlab("t") + ylab("mu1(t),mu0(t)") + theme(axis.text=element_text(size=12,  family="Helvetica"), axis.title=element_text(size=14,face="bold",family="Helvetica")) +
+      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 10, family="Helvetica")) + 
       scale_colour_manual(values=c("blue4","red")) +
       geom_line(aes(y = mu0, color="mu0"), linetype="dashed", cex=2) + 
-      annotate("text", x=tx, y=ty, label= plot_text, size=fsz)
+      annotate("text", x=tx, y=ty, label= plot_text, size=fsz, fontface="bold", family="Helvetica")
   invisible(pmu)
 }
 
 # Uncomment lines below when you need to make a figure:
 #
-#f1A<-muPlot(params=c(0.2, 0.4, 0.4, 0, 0.07, 0.85, 1.5, 30, 105), plot_text = "1A")
-#f1B<-muPlot(params=c(0.55, 0.05, 0.05, 0.35, 0.07, 0.85, 1.5, 30, 105), plot_text = "1B", ty=0.075)
-#f1C<-muPlot(params=c(0.49, 0.11, 0.11, 0.29, 0.07, 0.85, 1.5, 30, 105), plot_text = "1C")
-#f1D<-muPlot(params=c(0.52, 0,	0.14,	0.34,	0.07,	0.8, 1.3, 30, 105), plot_text = "1D", ty=0.072)
+f1A<-muPlot(params=c(0.2, 0.4, 0.4, 0, 0.07, 0.85, 1.5, 30, 105), plot_text = "a")
+f1B<-muPlot(params=c(0.55, 0.05, 0.05, 0.35, 0.07, 0.85, 1.5, 30, 105), plot_text = "b", ty=0.075)
+f1C<-muPlot(params=c(0.49, 0.11, 0.11, 0.29, 0.07, 0.85, 1.5, 30, 105), plot_text = "c")
+f1D<-muPlot(params=c(0.52, 0,	0.14,	0.34,	0.07,	0.8, 1.3, 30, 105), plot_text = "d", ty=0.072)
 #
 #
-#postscript("~/Projects/ld_effects/plots/Fig1.eps", width=1800, height=1200, paper = "letter")
-#multiplot(f1A, f1C, f1B, f1D, cols = 2)
-#dev.off()
+postscript("~/Projects/ld_effects/plots/Fig1.eps", width=1800, height=1200, paper = "letter", family = "Helvetica")
+multiplot(f1A, f1C, f1B, f1D, cols = 2)
+dev.off()
 #
-#f2A<-muPlot(params=c(0.2,	0.4,	0.4,	0,	.07,	-0.2,	0.8, 30, 105), plot_text = "2A", dflag=TRUE)
-#f2B<-muPlot(params=c(0.59,	0.01,	0.01,	0.39,	.07,	-0.2,	0.8, 30, 105), plot_text = "2B", ty=0.081, dflag=TRUE)
-#f2C<-muPlot(params=c(0.49,	0.11,	0.11,	0.29,	.07,	-0.2,	0.8, 30, 105), plot_text = "2C", dflag=TRUE)
-#f2D<-muPlot(params=c(0.59,	0,	0.13,	0.28,	.07,	-0.35,	0.4, 30, 105), plot_text = "2D", ty=0.072, dflag=TRUE)
+f2A<-muPlot(params=c(0.2,	0.4,	0.4,	0,	.07,	-0.2,	0.8, 30, 105), plot_text = "a", dflag=TRUE)
+f2B<-muPlot(params=c(0.59,	0.01,	0.01,	0.39,	.07,	-0.2,	0.8, 30, 105), plot_text = "b", ty=0.081, dflag=TRUE)
+f2C<-muPlot(params=c(0.49,	0.11,	0.11,	0.29,	.07,	-0.2,	0.8, 30, 105), plot_text = "c", dflag=TRUE)
+f2D<-muPlot(params=c(0.59,	0,	0.13,	0.28,	.07,	-0.35,	0.4, 30, 105), plot_text = "d", ty=0.072, dflag=TRUE)
 #
-#postscript("~/Projects/ld_effects/plots/Fig2.eps", horizontal = TRUE, paper = "letter")
-#multiplot(f2A, f2C, f2B, f2D, cols = 2)
-#dev.off()
+postscript("~/Projects/ld_effects/plots/Fig2.eps", horizontal = TRUE, paper = "letter", family = "Helvetica")
+multiplot(f2A, f2C, f2B, f2D, cols = 2)
+dev.off()
