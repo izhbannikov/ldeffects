@@ -28,7 +28,12 @@ shinyUI(fluidPage(
              ),
     wellPanel(
       h4("Mortality"),
-      sliderInput("mu00","mu00:",min = 0,max = 0.1,value = 0.013),
+      checkboxInput("gomp_mu00", "Gompertz", value = FALSE),
+      conditionalPanel("input.gomp_mu00 == 0",
+                       sliderInput("mu00","mu00:",min = 0, max = 0.1, value = 0.013)),
+      conditionalPanel("input.gomp_mu00 == 1",
+                       sliderInput("a_mu00","a:",min = 0, max = 0.5,value = 0.1),
+                       sliderInput("b_mu00","b:",min = 1e-5, max = 10e-5, value = 5e-5)),
       checkboxInput("dcase", "D1,D2", value = FALSE),
       conditionalPanel("input.dcase == 0",
         sliderInput("H1","H1:",min = 0,max = 5,value = 0.5, step=0.05),
@@ -48,9 +53,6 @@ shinyUI(fluidPage(
         tabPanel("Mortality", 
                  plotOutput("mortalityPlot",height = 480), 
                  downloadButton("downloadPlotMu", label="Save"),
-<<<<<<< HEAD
-                 checkboxInput("notitle_mortality", "No title", value = FALSE))
-=======
                  checkboxInput("notitle_mortality", "No title", value = FALSE)),
         tabPanel("MAF", 
                  plotOutput("mafPlot",height = 480), 
@@ -60,7 +62,6 @@ shinyUI(fluidPage(
                  plotOutput("ldPlot",height = 480), 
                  downloadButton("downloadPlotLD", label="Save"),
                  checkboxInput("notitle_ld", "No title", value = FALSE))
->>>>>>> gh-pages
       )
       
     )

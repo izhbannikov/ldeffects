@@ -166,7 +166,13 @@ shinyServer(function(input, output, session) {
     m11 <<- vals[4]
     
     #mu10 <- input$mu10
-    mu00 <- input$mu00
+    
+    if(input$gomp_mu00 == TRUE) {
+      mu00 <- input$a_mu00*exp(input$b_mu00)
+    } else {
+      mu00 <- input$mu00
+    }
+    
     #mu11 <- input$mu11
     #mu01 <- input$mu01
     if(input$dcase == T) {
