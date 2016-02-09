@@ -85,6 +85,121 @@ calc <- function(pars) {
   dd
 }
 
+calc_gompertz <- function(pars) {
+  
+  m00 <- pars[1]
+  m01 <- pars[2]
+  m10 <- pars[3]
+  m11 <- pars[4]
+  
+  a_mu00 <- pars[5]
+  b_mu00 <- pars[6]
+  
+  dcase <- pars[9]
+  D1 <- pars[10]
+  D2 <- pars[11]
+  H1 <- pars[12]
+  H2 <- pars[13]
+  
+  mu00t <- function(t) {
+    mu00 <- a_mu00*exp(b_mu00*t)
+    mu00
+  }
+  
+  mu10t <- function(t) {
+    mu00 <- mu00t(t)
+    if(dcase == T) {
+      mu10 <- mu00*(1+D1)
+    } else {
+      mu10 <- mu00*H1
+    }
+    mu10
+  }
+  
+  mu01t <- function(t) {
+    mu00 <- mu00t(t)
+    if(dcase == T) {
+      mu01 <- mu00*(1+D2)
+    } else {
+      mu01 <- mu00*H2
+    }
+    mu01
+  }
+  
+  mu11t <- function(t) {
+    mu00 <- mu00t(t)
+    if(dcase == T) {
+      mu11 <- mu00*(1+D1 + D2)
+    } else {
+      mu11 <- mu00*H1*H2
+    }
+    mu11
+  }
+  
+  m00t <- function(t) {
+    m00*exp(-1*mu00t(t)*(t-t0))/(m00*exp(-1*mu00t(t)*(t-t0)) + m01*exp(-1*mu01t(t)*(t-t0)) + m10*exp(-1*mu10t(t)*(t-t0)) + m11*exp(-1*mu11t(t)*(t-t0)))
+  }
+  
+  m01t <- function(t) {
+    m01*exp(-1*mu01t(t)*(t-t0))/(m00*exp(-1*mu00t(t)*(t-t0)) + m01*exp(-1*mu01t(t)*(t-t0)) + m10*exp(-1*mu10t(t)*(t-t0)) + m11*exp(-1*mu11t(t)*(t-t0)))
+  }
+  
+  m11t <- function(t) {
+    m11*exp(-1*mu11t(t)*(t-t0))/(m00*exp(-1*mu00t(t)*(t-t0)) + m01*exp(-1*mu01t(t)*(t-t0)) + m10*exp(-1*mu10t(t)*(t-t0)) + m11*exp(-1*mu11t(t)*(t-t0)))
+  }
+  
+  m10t <- function(t) {
+    m10*exp(-1*mu10t(t)*(t-t0))/(m00*exp(-1*mu00t(t)*(t-t0)) + m01*exp(-1*mu01t(t)*(t-t0)) + m10*exp(-1*mu10t(t)*(t-t0)) + m11*exp(-1*mu11t(t)*(t-t0)))
+  }
+  
+  t1 <- pars[7]
+  t2 <- pars[8]
+  t0 <<- t1
+  res <- matrix(ncol=11,nrow=0)
+  
+  k1carr <- 1/(m10 + m11) 
+  k1non <- 1/(m01 + m00)
+  for(i in t1:t2) {
+    
+    k <- m00*exp(-1*mu00t(i)*(i-t1)) + m01*exp(-1*mu01t(i)*(i-t1)) + m10*exp(-1*mu10t(i)*(i-t1)) + m11*exp(-1*mu11t(i)*(i-t1))
+    m1t <- (m10*exp(-1*mu10t(i)*(i-t1)) + m11*exp(-1*mu11t(i)*(i-t1)))/k
+    m2t <- (m01*exp(-1*mu01t(i)*(i-t1)) + m11*exp(-1*mu11t(i)*(i-t1)))/k
+    
+    S1carr <- (m10*exp(-1*mu10t(i)*(i-t1)) + m11*exp(-1*mu11t(i)*(i-t1)))*k1carr
+    S1non <- (m01*exp(-1*mu01t(i)*(i-t1)) + m00*exp(-1*mu00t(i)*(i-t1)))*k1non
+    
+    ld <- round(m11t(i) - (m10t(i) + m11t(i))*(m01t(i) + m11t(i)),8)
+    
+    p1 <- m10t(i) + m11t(i)
+    p2 <- m01t(i) + m11t(i)
+    
+    q1 <- m01t(i) + m00t(i)
+    q2 <- m10t(i) + m00t(i)
+    
+    r2 <- round(ld^2/(p1*q1*p2*q2),8)
+    
+    if(ld < 0) {
+      r2 <- -1*r2
+    } 
+    
+    res <- rbind(res, c(i, m00t(i), m01t(i), m11t(i), m10t(i), m1t, m2t, S1carr, S1non, ld, r2))
+    
+  }
+  
+  colnames(res) <- c("t", "m00", "m01", "m11", "m10", "m1t", "m2t", "S1carr", "S1non", "ld", "r2")
+  
+  dd <- list()
+  dd$m=res
+  
+  dd$mu00 <- mu00t(t1)
+  dd$mu10 <- mu10t(t1)
+  dd$mu01 <- mu01t(t1)
+  dd$mu11 <- mu11t(t1)
+  
+  dd
+}
+
+
 outputDir <- "." #"saved"
 
 saveData <- function(data) {
@@ -168,52 +283,58 @@ shinyServer(function(input, output, session) {
     #mu10 <- input$mu10
     
     if(input$gomp_mu00 == TRUE) {
-      mu00 <- input$a_mu00*exp(input$b_mu00)
+      amu00 <- input$a_mu00
+      bmu00 <- input$b_mu00
+    
+      t1 <- input$time[1]
+      t2 <- input$time[2]
+      
+      if(input$constrained==F) {
+        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
+        pvv1 <<- m10 + m11
+        pvv2 <<- m01 + m11
+      } else {
+        m00 <<- 1 + m11 - pvv1 - pvv2
+        m10 <<- pvv1 - m11
+        m01 <<- pvv2 - m11
+        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
+      }
+      
     } else {
       mu00 <- input$mu00
+      
+      if(input$dcase == T) {
+        mu10 <- mu00*(1+input$D1)
+        mu01 <- mu00*(1+input$D2)
+        mu11 <- mu00*(1+input$D1 + input$D2)
+      } else {
+        mu10 <- mu00*input$H1
+        mu01 <- mu00*input$H2
+        mu11 <- mu00*input$H1*input$H2
+      }
+    
+      t1 <- input$time[1]
+      t2 <- input$time[2]
+      #-----------------#
+    
+      if(input$constrained==F) {
+      
+        dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
+        pvv1 <<- m10 + m11
+        pvv2 <<- m01 + m11
+      } else {
+        m00 <<- 1 + m11 - pvv1 - pvv2
+        m10 <<- pvv1 - m11
+        m01 <<- pvv2 - m11
+      
+        dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
+      }
+    
+      dd$mu00 <- mu00
+      dd$mu10 <- mu10
+      dd$mu01 <- mu01
+      dd$mu11 <- mu11
     }
-    
-    #mu11 <- input$mu11
-    #mu01 <- input$mu01
-    if(input$dcase == T) {
-      mu10 <- mu00*(1+input$D1)
-      mu01 <- mu00*(1+input$D2)
-      mu11 <- mu00*(1+input$D1 + input$D2)
-    } else {
-      mu10 <- mu00*input$H1
-      mu01 <- mu00*input$H2
-      mu11 <- mu00*input$H1*input$H2
-    }
-    
-    t1 <- input$time[1]
-    t2 <- input$time[2]
-    #-----------------#
-    
-    if(input$constrained==F) {
-      
-      dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
-      pvv1 <<- m10 + m11
-      pvv2 <<- m01 + m11
-      
-      
-      
-    } else {
-      
-      
-      m00 <<- 1 + m11 - pvv1 - pvv2
-      m10 <<- pvv1 - m11
-      m01 <<- pvv2 - m11
-      
-      dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
-      #pvv1 <<- m10 + m11
-      #pvv2 <<- m01 + m11
-    
-    }
-    
-    dd$mu00 <- mu00
-    dd$mu10 <- mu10
-    dd$mu01 <- mu01
-    dd$mu11 <- mu11
     
     dd
   })
@@ -263,7 +384,7 @@ shinyServer(function(input, output, session) {
                           "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
                           ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
                           ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                          ";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""),
+                          ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
               titlesize=12,titlefont="Courier", titleface=2)
     } else {
       if(input$notitle_main==TRUE) { 
@@ -277,7 +398,7 @@ shinyServer(function(input, output, session) {
                                     "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
                                     ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
                                     ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                    ";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""),
+                                    ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
                        titlesize=12,titlefont="Courier", titleface=2)
       }
       
@@ -313,7 +434,7 @@ shinyServer(function(input, output, session) {
                      "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
                      ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
                      ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                     ";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep="")) +
+                     ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
                   theme(plot.title = element_text(face="bold", family="Courier", size = 12))
       pmu
     } else {
@@ -328,7 +449,7 @@ shinyServer(function(input, output, session) {
                                    "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
                                    ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
                                    ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                   "; mu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep="")) +
+                                   ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
           theme(plot.title = element_text(face="bold", family="Courier", size = 12))
       }
     }
