@@ -28,11 +28,11 @@ shinyUI(fluidPage(
              ),
     wellPanel(
       h4("Mortality"),
-      checkboxInput("gomp_mu00", "Gompertz", value = FALSE),
+      checkboxInput("gomp_mu00", "Gompertz = b*exp(a*t)", value = FALSE),
       conditionalPanel("input.gomp_mu00 == 0",
                        sliderInput("mu00","mu00:",min = 0, max = 0.1, value = 0.013)),
       conditionalPanel("input.gomp_mu00 == 1",
-                       sliderInput("a_mu00","a:",min = 0, max = 0.5,value = 0.1),
+                       sliderInput("a_mu00","a:",min = 0, max = 0.2,value = 0.1),
                        sliderInput("b_mu00","b:",min = 1e-5, max = 10e-5, value = 5e-5)),
       checkboxInput("dcase", "D1,D2", value = FALSE),
       conditionalPanel("input.dcase == 0",
