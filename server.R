@@ -102,7 +102,7 @@ calc_gompertz <- function(pars) {
   H2 <- pars[13]
   
   mu00t <- function(t) {
-    mu00 <- b_mu00*exp(a_mu00*t)
+    mu00 <- a_mu00*exp(b_mu00*t)
     mu00
   }
   
@@ -313,7 +313,7 @@ shinyServer(function(input, output, session) {
         m00 <<- 1 + m11 - pvv1 - pvv2
         m10 <<- pvv1 - m11
         m01 <<- pvv2 - m11
-        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
+        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
       }
       
     } else {
