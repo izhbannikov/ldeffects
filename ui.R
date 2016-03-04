@@ -29,6 +29,7 @@ shinyUI(fluidPage(
     wellPanel(
       h4("Mortality"),
       checkboxInput("gomp_mu00", "Gompertz = a*exp(b*t)", value = FALSE),
+      checkboxInput("mu.log", "Log", value = FALSE),
       conditionalPanel("input.gomp_mu00 == 0",
                        sliderInput("mu00","mu00:",min = 0, max = 0.1, value = 0.013)),
       conditionalPanel("input.gomp_mu00 == 1",

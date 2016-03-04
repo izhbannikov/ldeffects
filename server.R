@@ -227,9 +227,9 @@ saveData <- function(data) {
 loadData <- function() {
   # Read all the files into a list
   files <- list.files(outputDir, full.names = TRUE,pattern = "*.csv")
-  print(files)
+  #print(files)
   data <- lapply(files, read.csv, stringsAsFactors = FALSE,row.names=NULL) 
-  print(data)
+  #print(data)
   # Concatenate all data together into one data.frame
   data <- do.call(rbind, data)
   data
@@ -289,8 +289,6 @@ shinyServer(function(input, output, session) {
     m01 <<- vals[2]
     m10 <<- vals[3]
     m11 <<- vals[4]
-    
-    #mu10 <- input$mu10
     
     if(input$gomp_mu00 == TRUE) {
       amu00 <- input$a_mu00
@@ -424,8 +422,11 @@ shinyServer(function(input, output, session) {
     
     m0t <- 1 - m[,"m1t"]
     mu1 <- dd$mu10*m[,"m10"]/m[,"m1t"] + dd$mu11*m[,"m11"]/m[,"m1t"]
-    
     mu0 <- dd$mu00*m[,"m00"]/m0t + dd$mu01*m[,"m01"]/m0t
+    if(input$mu.log) {
+      mu1 <- log(mu1)
+      mu0 <- log(mu0)
+    } 
     mu <- cbind(t=t1:t2, mu1=mu1, mu0=mu0)
     
     pmu <- ggplot(data=data.frame(mu), aes(t)) + geom_line(aes(y = mu1,color="mu1"),cex=2) + theme_bw() +
