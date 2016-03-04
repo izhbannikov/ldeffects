@@ -1,11 +1,11 @@
 ---
 title: "Exploring differences in LD levels between lifespan-related loci"
-author: "Ilya Zhbannikov"
-date: "22 November 2015"
+author: "Ilya Y. Zhbannikov, Anatoliy I. Yashin"
+date: "04 March 2016"
 output: pdf_document
 ---
 
-#Project Summary
+# Project Summary
 
 This is a scientific application that was developed in order to explore differences in Linkage Disequilibrium (LD) effects between lifespan-related loci.
 
@@ -40,27 +40,51 @@ Denote $\mu_{00}(t)$ to be the mortality risk for the genotype of "00". Initial 
 Other mortality risks corresponding to other genotypes ("01", "10", "11") can be calculated from the following equations:
 
 #####First model:
-$\mu_{10} = \mu_{00}(1 + D_1)$
-$\mu_{01} = \mu_{00}(1 + D_2)$
-$\mu_{11} = \mu{00}(1 + D_1 + D_2)$
+$\mu_{10} = \mu_{00}(1 + D_1)$ \newline
+$\mu_{01} = \mu_{00}(1 + D_2)$ \newline
+$\mu_{11} = \mu{00}(1 + D_1 + D_2)$ \newline
 
 Where $D_1$, $D_2$ are the increments to genotype's relative risks associated with the presence of minor alleles in the first and in the second loci, respectively.
 
 #####Second model:
 
-$\mu_{10} = \mu_{00}H_1$
-$\mu_{01} = \mu_{00}H_2$
-$\mu_{11} = \mu{00}H_1H_2$
+$\mu_{10} = \mu_{00}H_1$ \newline
+$\mu_{01} = \mu_{00}H_2$ \newline
+$\mu_{11} = \mu{00}H_1H_2$ \newline
 
 Where $H_1$, $H_2$ are relative risks of genotypes (1,0) and (0,1) with respect to genotype (0,0) and $H_1H_2$ is relative risk of genotypes (1,1) with respect to genotype (0,0).
 
 The choice between the two models can be made using corresponding checkbox "$D_1,D_2$".
 
-#### Main Plots panel
+#####Gompertz effects
+
+If the checkbox "Gompertz" is checked, then the mortalities are calculated with the following equations:
+
+######For the first model:
+
+$\mu_{00} = a \cdot e^{b \cdot t}$ \newline
+$\mu_{10} = \mu_{00}H_1$ \newline
+$\mu_{01} = \mu_{00}H_2$ \newline
+$\mu_{11} = \mu{00}H_1H_2$ \newline
+
+######For the second model:
+
+$\mu_{00} = a \cdot e^{b \cdot t}$ \newline
+$\mu_{10} = \mu_{00}(1 + D_1)$ \newline
+$\mu_{01} = \mu_{00}(1 + D_2)$ \newline
+$\mu_{11} = \mu{00}(1 + D_1 + D_2)$ \newline
+
+Where $a$ and $b$ can be set from corresponding slider inputs.
+
+##### Natural logarithm
+
+If the checkbox "Log" is set, then the natural logarithm is applied to mortality functions.
+
+#### Main Plots panel ("Main Plots")
 
 $m_1(t)$, $m_2(t)$ - are the frequences of the minor alleles in locus 1 and 2 respectively.
 
-$LD(t)$ - Linkage Disequilibrium between these two loci.
+$D(t)$ , $r2(t)$- Linkage Disequilibrium between these two loci, written in forms of D and r^2.
 
 $S(t)$ - Survival function for the population.
 
@@ -70,10 +94,19 @@ Button "Save" saves the plots as a .png image.
 
 Is the checkbox "No title" is set, then figures are saved without titles.
 
-#### Mortality plots panel
+#### Mortality plots panel ("Mortality")
 
-Plot $\mu_{1}(t),\mu_{0}(t)$ shows mortality changes overtime for locus 1 and 2 respectively.
+Plot $\mu_{1}(t)$,$\mu_{0}(t)$ shows mortality changes overtime for locus 1 and 2 respectively. 
+Also this panel shows plot for haplotype mortalities ($\mu_{00}(t)$, $\mu_{01}(t)$, $\mu_{10}(t)$, $\mu_{11}(t)$)
 
-Button "Save" saves the plots as a .png image.
+Button "Save" saves the plots as a .png image. Is the checkbox "No title" is set, then the figures are saved without titles.
 
-Is the checkbox "No title" is set, then figure is saved without titles.
+#### Minor allele frequences panel ("MAF")
+
+This panel shows the plot for minor allele frequences of haplotypes: $m_{00}$, $m_{10}$, $m_{01}$, $m_{11}$.
+Button "Save" saves the plot as a .png image. Is the checkbox "No title" is set, then the figure is saved without title.
+
+#### Linkage disequilibrium panel ("LD")
+
+This panel shows the plot for the linkage disequilibrium between two loci: $D$ and its variation, $r^2$.
+Button "Save" saves the plot as a .png image. Is the checkbox "No title" is set, then the figure is saved without title.

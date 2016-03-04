@@ -464,6 +464,76 @@ shinyServer(function(input, output, session) {
     }
   }
   
+  muPlotHap <- function(save=F, cols=1) {
+    dd <- data()
+    t1 <- input$time[1]
+    t2 <- input$time[2]
+    m <- dd$m
+    a <- input$a_mu00
+    b <- input$b_mu00
+    D1 <- input$D1
+    D2 <- input$D2
+    H1 <- input$H1
+    H2 <- input$H2
+    dcase <- input$dcase
+    
+    if(input$gomp_mu00) {
+      mu00 <- unlist(lapply(t1:t2, function(t) {mu00t(t, a, b)}))
+      mu10 <- unlist(lapply(t1:t2, function(t) {mu10t(t, a, b, D1, H1, dcase)}))
+      mu01 <- unlist(lapply(t1:t2, function(t) {mu01t(t, a, b, D2, H2, dcase)}))
+      mu11 <- unlist(lapply(t1:t2, function(t) {mu11t(t, a, b, D1, D2, H1, H2, dcase)}))
+    } else {
+      mu00 <- dd$mu00
+      mu10 <- dd$mu10
+      mu01 <- dd$mu01
+      mu11 <- dd$mu11
+    }
+    
+    if(input$mu.log) {
+      mu00 <- log(mu00)
+      mu10 <- log(mu10)
+      mu01 <- log(mu01)
+      mu11 <- log(mu11)
+    } 
+    
+    mu <- cbind(t=t1:t2, mu00=mu00, mu10=mu10, mu01=mu01, mu11=mu11)
+    
+    pmu.ij=ggplot(data=data.frame(mu), aes(t)) + theme_bw() +
+      geom_line(aes(y = mu00,color='mu00', size=Mij),cex=2) +
+      geom_line(aes(y = mu01,color='mu01', size=Mij),cex=2) +
+      geom_line(aes(y = mu10,color='mu10', size=Mij),cex=2) +
+      geom_line(aes(y = mu11,color='mu11', size=Mij),cex=2) +
+      xlab("t") + ylab("muij(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
+      theme(legend.position=c(0.9, .5), legend.title=element_blank(), legend.text = element_text(size = 16))
+    
+    if(save==F) {
+      pmu.ij <- pmu.ij + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
+                                 "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
+                                 ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
+                                 "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
+                                 ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
+                                 ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
+                                 ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
+        theme(plot.title = element_text(face="bold", family="Courier", size = 12))
+      pmu.ij
+    } else {
+      
+      if(input$notitle_mortality_hap==TRUE) { 
+        pmu.ij
+      } 
+      else {
+        pmu.ij <- pmu.ij + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
+                                   "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
+                                   ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
+                                   "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
+                                   ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
+                                   ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
+                                   ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
+          theme(plot.title = element_text(face="bold", family="Courier", size = 12))
+      }
+    }
+  }
+  
   mafPlot <- function(cols=1, save=F){
     
     dd <- data()
@@ -488,7 +558,7 @@ shinyServer(function(input, output, session) {
                              ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
                 titlesize=12,titlefont="Courier", titleface=2)
     } else {
-      if(input$notitle_main==TRUE) { 
+      if(input$notitle_maf==TRUE) { 
         multiplot(pmij, cols=cols)
       } 
       else {
@@ -532,7 +602,7 @@ shinyServer(function(input, output, session) {
                              ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
                 titlesize=12,titlefont="Courier", titleface=2)
     } else {
-      if(input$notitle_main==TRUE) { 
+      if(input$notitle_ld==TRUE) { 
         multiplot(pld, cols=cols)
       } 
       else {
@@ -560,22 +630,22 @@ shinyServer(function(input, output, session) {
   output$distPlot <- renderPlot({
     dataset()
     print(mPlot())
-    
   })
   
   output$mortalityPlot <- renderPlot({
     print(muPlot())
-    
+  })
+  
+  output$mortalityPlotHap <- renderPlot({
+    print(muPlotHap())
   })
   
   output$mafPlot <- renderPlot({
     print(mafPlot())
-    
   })
   
   output$ldPlot <- renderPlot({
     print(ldPlot())
-    
   })
   
   output$downloadPlot <- downloadHandler(
@@ -592,6 +662,15 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       png(file, width = 640, height = 480)
       print(muPlot(T,1))
+      dev.off()
+    }
+  ) 
+  
+  output$downloadPlotMuHap <- downloadHandler(
+    filename = "plot_mu_hap.png",
+    content = function(file) {
+      png(file, width = 640, height = 480)
+      print(muPlotHap(T,1))
       dev.off()
     }
   ) 
