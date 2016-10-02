@@ -619,7 +619,46 @@ shinyServer(function(input, output, session) {
     }
   }
   
-  
+  survPlot <- function(cols=1, save=F){
+    
+    dd <- data()
+    m <- dd$m
+    
+    # Survival:
+    ps <- ggplot(data=data.frame(m), aes(t)) + theme_bw() +
+      geom_line(aes(y = S1carr,color='S1carr'),cex=2) +
+      geom_line(aes(y = S1non, color="S1non"), linetype="dashed",cex=2) +
+      xlab("t") + ylab("S(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
+      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 16)) +
+      scale_colour_manual(values=c("red","blue4"))
+    
+    if(save==F) {
+      multiplot(ps, cols=cols, 
+                title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
+                             "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
+                             ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
+                             "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
+                             ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
+                             ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
+                             ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
+                titlesize=12,titlefont="Courier", titleface=2)
+    } else {
+      if(input$notitle_surv==TRUE) { 
+        multiplot(ps, cols=cols)
+      } 
+      else {
+        multiplot(ps, cols=cols, 
+                  title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
+                               "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
+                               ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
+                               "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
+                               ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
+                               ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
+                               ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
+                  titlesize=12,titlefont="Courier", titleface=2)
+      }
+    }
+  }
   
   getPVV <- function() {
     dd <- data()
@@ -646,6 +685,10 @@ shinyServer(function(input, output, session) {
   
   output$ldPlot <- renderPlot({
     print(ldPlot())
+  })
+  
+  output$survPlot <- renderPlot({
+    print(survPlot())
   })
   
   output$downloadPlot <- downloadHandler(
@@ -689,6 +732,15 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       png(file, width = 640, height = 480)
       print(ldPlot(T,1))
+      dev.off()
+    }
+  )
+  
+  output$downloadPlotSurvival <- downloadHandler(
+    filename = "plot_surv.png",
+    content = function(file) {
+      png(file, width = 640, height = 480)
+      print(survPlot(T,1))
       dev.off()
     }
   )

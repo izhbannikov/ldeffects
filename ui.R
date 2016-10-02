@@ -65,7 +65,11 @@ shinyUI(fluidPage(
         tabPanel("LD", 
                  plotOutput("ldPlot",height = 480), 
                  downloadButton("downloadPlotLD", label="Save"),
-                 checkboxInput("notitle_ld", "No title", value = FALSE))
+                 checkboxInput("notitle_ld", "No title", value = FALSE)),
+        tabPanel("Survival", 
+                 plotOutput("survPlot",height = 480), 
+                 downloadButton("downloadPlotSurvival", label="Save"),
+                 checkboxInput("notitle_surv", "No title", value = FALSE))
       )
       
     )
