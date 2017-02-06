@@ -41,7 +41,12 @@ shinyUI(fluidPage(
         sliderInput("H2","H2:",min = 0,max = 5,value = 1, step=0.05)),
       conditionalPanel("input.dcase == 1",
         sliderInput("D1","D1:",min = -1,max = 1,value = -0.1, step=0.05),
-        sliderInput("D2","D2:",min = -1,max = 1,value = 0.2, step=0.05))
+        sliderInput("D2","D2:",min = -1,max = 1,value = 0.2, step=0.05)),
+      checkboxInput("epistasis", "Epistasis", value = FALSE),
+      conditionalPanel("input.epistasis == 1",
+        sliderInput("c","C:",min = -5,max = 5,value = -0.1, step=0.05),
+        sliderInput("R1","R1:",min = -1,max = 1,value = -0.1, step=0.05),
+        sliderInput("R2","R2:",min = -1,max = 1,value = 0.2, step=0.05))
     )),
     
     # Show a plot of the generated distribution

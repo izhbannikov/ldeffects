@@ -92,31 +92,40 @@ mu00t <- function(t, a, b) {
 
 
 
-mu10t <- function(t, a, b, D1, H1, dcase) {
+mu10t <- function(t, a, b, D1, H1, dcase, epistasis, c, R1, R2) {
   if(dcase == T) {
     mu10 <- mu00t(t, a, b)*(1+D1)
   } else {
     mu10 <- mu00t(t, a, b)*H1
   }
+  if(epistasis) {
+      mu10 <- mu00t(t, a, b) + R2
+  }
   mu10
 }
 
-mu01t <- function(t, a, b, D2, H2, dcase) {
-  if(dcase == T) {
-    mu01 <- mu00t(t, a, b)*(1+D2)
-  } else {
-    mu01 <- mu00t(t, a, b)*H2
-  }
-  mu01
+mu01t <- function(t, a, b, D2, H2, dcase, epistasis, c, R1, R2) {
+    if(dcase == T) {
+        mu01 <- mu00t(t, a, b)*(1+D2)
+    } else {
+        mu01 <- mu00t(t, a, b)*H2
+    }
+    if(epistasis) {
+        mu01 <- mu00t(t, a, b) + R1
+    }
+    mu01
 }
 
-mu11t <- function(t, a, b, D1, D2, H1, H2, dcase) {
-  if(dcase == T) {
-    mu11 <- mu00t(t, a, b)*(1+D1 + D2)
-  } else {
-    mu11 <- mu00t(t, a, b)*H1*H2
-  }
-  mu11
+mu11t <- function(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2) {
+    if(dcase == T) {
+        mu11 <- mu00t(t, a, b)*(1+D1 + D2)
+    } else {
+        mu11 <- mu00t(t, a, b)*H1*H2
+    }
+    if(epistasis) {
+        mu11 <- mu00t(t, a, b) + R1 + R2 + c*R1*R2
+    }
+    mu11
 }
 
 
@@ -136,21 +145,37 @@ calc_gompertz <- function(pars) {
   H1 <- pars[12]
   H2 <- pars[13]
   
-  
+  epistasis <- pars[14]
+  c <- pars[15]
+  R1 <- pars[16]
+  R2 <- pars[17]
+  print(epistasis)
   m00t <- function(t) {
-    m00*exp(-1*mu00t(t, a, b)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + m01*exp(-1*mu01t(t, a, b, D2, H2, dcase)*(t-t0)) + m10*exp(-1*mu10t(t, a, b, D1, H1, dcase)*(t-t0)) + m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase)*(t-t0)))
+    m00*exp(-1*mu00t(t, a, b)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
+                                         m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                         m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                         m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
   }
   
   m01t <- function(t) {
-    m01*exp(-1*mu01t(t, a, b, D2, H2, dcase)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + m01*exp(-1*mu01t(t, a, b, D2, H2, dcase)*(t-t0)) + m10*exp(-1*mu10t(t, a, b, D1, H1, dcase)*(t-t0)) + m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase)*(t-t0)))
+    m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
+                                                        m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                        m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                        m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
   }
   
   m11t <- function(t) {
-    m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + m01*exp(-1*mu01t(t, a, b, D2, H2, dcase)*(t-t0)) + m10*exp(-1*mu10t(t, a, b, D1, H1, dcase)*(t-t0)) + m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase)*(t-t0)))
+    m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
+                                                                m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                                m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                                m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
   }
   
   m10t <- function(t) {
-    m10*exp(-1*mu10t(t, a, b, D1, H1, dcase)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + m01*exp(-1*mu01t(t, a, b, D2, H2, dcase)*(t-t0)) + m10*exp(-1*mu10t(t, a, b, D1, H1, dcase)*(t-t0)) + m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase)*(t-t0)))
+    m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
+                                                        m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                        m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
+                                                        m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
   }
   
   t1 <- pars[7]
@@ -162,12 +187,22 @@ calc_gompertz <- function(pars) {
   k1non <- 1/(m01 + m00)
   for(i in t1:t2) {
     
-    k <- m00*exp(-1*mu00t(i, a, b)*(i-t1)) + m01*exp(-1*mu01t(i, a, b, D2, H2, dcase)*(i-t1)) + m10*exp(-1*mu10t(i, a, b, D1, H1, dcase)*(i-t1)) + m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase)*(i-t1))
-    m1t <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase)*(i-t1)) + m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase)*(i-t1)))/k
-    m2t <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase)*(i-t1)) + m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase)*(i-t1)))/k
+    k <- m00*exp(-1*mu00t(i, a, b)*(i-t1)) + 
+      m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+      m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+      m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1))
     
-    S1carr <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase)*(i-t1)) + m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase)*(i-t1)))*k1carr
-    S1non <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase)*(i-t1)) + m00*exp(-1*mu00t(i, a, b)*(i-t1)))*k1non
+    m1t <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+              m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))/k
+    
+    m2t <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+              m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))/k
+    
+    S1carr <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+                 m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))*k1carr
+    
+    S1non <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
+                m00*exp(-1*mu00t(i, a, b)*(i-t1)))*k1non
     
     ld <- round(m11t(i) - (m10t(i) + m11t(i))*(m01t(i) + m11t(i)),8)
     
@@ -201,9 +236,9 @@ calc_gompertz <- function(pars) {
   dd$m=res
   
   tt <- t1:t2
-  dd[["mu10"]] <- mu10t(tt, a, b, D1, H1, dcase)
-  dd[["mu11"]] <- mu11t(tt, a, b, D1, D2, H1, H2, dcase)
-  dd[["mu01"]] <- mu01t(tt, a, b, D2, H2, dcase)
+  dd[["mu10"]] <- mu10t(tt, a, b, D1, H1, dcase, epistasis, c, R1, R2)
+  dd[["mu11"]] <- mu11t(tt, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)
+  dd[["mu01"]] <- mu01t(tt, a, b, D2, H2, dcase, epistasis, c, R1, R2)
   dd[["mu00"]] <- mu00t(tt, a, b)
   
   dd
@@ -298,14 +333,14 @@ shinyServer(function(input, output, session) {
       t2 <- input$time[2]
       
       if(input$constrained==F) {
-        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
+        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2, input$epistasis, input$c, input$R1, input$R2))
         pvv1 <<- m10 + m11
         pvv2 <<- m01 + m11
       } else {
         m00 <<- 1 + m11 - pvv1 - pvv2
         m10 <<- pvv1 - m11
         m01 <<- pvv2 - m11
-        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2))
+        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2, input$epistasis, input$c, input$R1, input$R2))
       }
       
     } else {
@@ -319,6 +354,12 @@ shinyServer(function(input, output, session) {
         mu10 <- mu00*input$H1
         mu01 <- mu00*input$H2
         mu11 <- mu00*input$H1*input$H2
+      }
+      
+      if(input$epistasis) {
+        mu10 <- mu00 + input$R2
+        mu01 <- mu00 + input$R1
+        mu11 <- mu00 + input$R1 + input$R2 + input$c*input$R1*input$R2
       }
     
       t1 <- input$time[1]
@@ -476,12 +517,16 @@ shinyServer(function(input, output, session) {
     H1 <- input$H1
     H2 <- input$H2
     dcase <- input$dcase
+    epistasis <- input$epistasis
+    c <- input$c
+    R1 <- input$R1
+    R2 <- input$R2
     
     if(input$gomp_mu00) {
       mu00 <- unlist(lapply(t1:t2, function(t) {mu00t(t, a, b)}))
-      mu10 <- unlist(lapply(t1:t2, function(t) {mu10t(t, a, b, D1, H1, dcase)}))
-      mu01 <- unlist(lapply(t1:t2, function(t) {mu01t(t, a, b, D2, H2, dcase)}))
-      mu11 <- unlist(lapply(t1:t2, function(t) {mu11t(t, a, b, D1, D2, H1, H2, dcase)}))
+      mu10 <- unlist(lapply(t1:t2, function(t) {mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)}))
+      mu01 <- unlist(lapply(t1:t2, function(t) {mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)}))
+      mu11 <- unlist(lapply(t1:t2, function(t) {mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)}))
     } else {
       mu00 <- dd$mu00
       mu10 <- dd$mu10
