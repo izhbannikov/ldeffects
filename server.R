@@ -17,48 +17,55 @@ getState<-function(input) c(input$slider1, input$slider2, input$slider3, input$s
 
 calc <- function(pars) {
   
-  m00 <- pars[1]
-  m01 <- pars[2]
-  m10 <- pars[3]
-  m11 <- pars[4]
+  m00 <- pars$m00
+  m01 <- pars$m01
+  m10 <- pars$m10
+  m11 <- pars$m11
   
-  mu10 <- pars[5]
-  mu00 <- pars[6]
-  mu11 <- pars[7]
-  mu01 <- pars[8]
+  mu10 <- pars$mu10
+  mu00 <- pars$mu00
+  mu11 <- pars$mu11
+  mu01 <- pars$mu01
+  
+  
   
   m00t <- function(t) {
-    m00*exp(-1*mu00*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+    dt <- t-t0
+    m00*exp(-1*mu00*dt)/(m00*exp(-1*mu00*dt) + m01*exp(-1*mu01*dt) + m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))
   }
   
   m01t <- function(t) {
-    m01*exp(-1*mu01*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+    dt <- t-t0
+    m01*exp(-1*mu01*dt)/(m00*exp(-1*mu00*dt) + m01*exp(-1*mu01*dt) + m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))
   }
   
   m11t <- function(t) {
-    m11*exp(-1*mu11*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+    dt <- t-t0
+    m11*exp(-1*mu11*dt)/(m00*exp(-1*mu00*dt) + m01*exp(-1*mu01*dt) + m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))
   }
   
   m10t <- function(t) {
-    m10*exp(-1*mu10*(t-t0))/(m00*exp(-1*mu00*(t-t0)) + m01*exp(-1*mu01*(t-t0)) + m10*exp(-1*mu10*(t-t0)) + m11*exp(-1*mu11*(t-t0)))
+    dt <- t-t0
+    m10*exp(-1*mu10*dt)/(m00*exp(-1*mu00*dt) + m01*exp(-1*mu01*dt) + m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))
   }
   
   
-  t1 <- pars[9]
-  t2 <- pars[10]
+  t1 <- pars$t1
+  t2 <- pars$t2
   t0 <<- t1
   res <- matrix(ncol=11,nrow=0)
   
   k1carr <- 1/(m10 + m11) 
   k1non <- 1/(m01 + m00)
   for(i in t1:t2) {
+    dt <- i-t1
     
-    k <- m00*exp(-1*mu00*(i-t1)) + m01*exp(-1*mu01*(i-t1)) + m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1))
-    m1t <- (m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1)))/k
-    m2t <- (m01*exp(-1*mu01*(i-t1)) + m11*exp(-1*mu11*(i-t1)))/k
+    k <- m00*exp(-1*mu00*dt) + m01*exp(-1*mu01*dt) + m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt)
+    m1t <- (m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))/k
+    m2t <- (m01*exp(-1*mu01*dt) + m11*exp(-1*mu11*dt))/k
     
-    S1carr <- (m10*exp(-1*mu10*(i-t1)) + m11*exp(-1*mu11*(i-t1)))*k1carr
-    S1non <- (m01*exp(-1*mu01*(i-t1)) + m00*exp(-1*mu00*(i-t1)))*k1non
+    S1carr <- (m10*exp(-1*mu10*dt) + m11*exp(-1*mu11*dt))*k1carr
+    S1non <- (m01*exp(-1*mu01*dt) + m00*exp(-1*mu00*dt))*k1non
     
     ld <- round(m11t(i) - (m10t(i) + m11t(i))*(m01t(i) + m11t(i)),8)
     
@@ -85,124 +92,129 @@ calc <- function(pars) {
   dd
 }
 
-mu00t <- function(t, a, b) {
-  mu00 <- a*exp(b*t)
+mu00t <- function(args) {
+  mu00 <- args$a*exp(args$b*args$t)
   mu00
 }
 
 
 
-mu10t <- function(t, a, b, D1, H1, dcase, epistasis, c, R1, R2) {
-  if(dcase == T) {
-    mu10 <- mu00t(t, a, b)*(1+D1)
+mu10t <- function(args) {
+  if(args$dcase == T) {
+    mu10 <- mu00t(args)*(1+args$D1)
   } else {
-    mu10 <- mu00t(t, a, b)*H1
+    mu10 <- mu00t(args)*args$H1
   }
-  if(epistasis) {
-      mu10 <- mu00t(t, a, b) + R2
+  if(args$epistasis) {
+      mu10 <- mu00t(args) + args$R2
   }
   mu10
 }
 
-mu01t <- function(t, a, b, D2, H2, dcase, epistasis, c, R1, R2) {
-    if(dcase == T) {
-        mu01 <- mu00t(t, a, b)*(1+D2)
+mu01t <- function(args) {
+    if(args$dcase == T) {
+        mu01 <- mu00t(args)*(1+args$D2)
     } else {
-        mu01 <- mu00t(t, a, b)*H2
+        mu01 <- mu00t(args)*args$H2
     }
-    if(epistasis) {
-        mu01 <- mu00t(t, a, b) + R1
+    if(args$epistasis) {
+        mu01 <- mu00t(args) + args$R1
     }
     mu01
 }
 
-mu11t <- function(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2) {
-    if(dcase == T) {
-        mu11 <- mu00t(t, a, b)*(1+D1 + D2)
+mu11t <- function(args) {
+    if(args$dcase == T) {
+        mu11 <- mu00t(args)*(1+args$D1 + args$D2)
     } else {
-        mu11 <- mu00t(t, a, b)*H1*H2
+        mu11 <- mu00t(args)*args$H1*args$H2
     }
-    if(epistasis) {
-        mu11 <- mu00t(t, a, b) + R1 + R2 + c*R1*R2
+    if(args$epistasis) {
+        mu11 <- mu00t(args) + args$R1 + args$R2 + args$c*args$R1*args$R2
     }
     mu11
 }
 
 
 calc_gompertz <- function(pars) {
+  print(pars)
+  m00 <- pars$m00
+  m01 <- pars$m01
+  m10 <- pars$m10
+  m11 <- pars$m11
   
-  m00 <- pars[1]
-  m01 <- pars[2]
-  m10 <- pars[3]
-  m11 <- pars[4]
+  a <- pars$a
+  b <- pars$b
   
-  a <- pars[5]
-  b <- pars[6]
+  dcase <- pars$dcase
+  D1 <- pars$D1
+  D2 <- pars$D2
+  H1 <- pars$H1
+  H2 <- pars$H2
   
-  dcase <- pars[9]
-  D1 <- pars[10]
-  D2 <- pars[11]
-  H1 <- pars[12]
-  H2 <- pars[13]
+  epistasis <- pars$epistasis
+  c <- pars$c
+  R1 <- pars$R1
+  R2 <- pars$R2
   
-  epistasis <- pars[14]
-  c <- pars[15]
-  R1 <- pars[16]
-  R2 <- pars[17]
-  print(epistasis)
+  
   m00t <- function(t) {
-    m00*exp(-1*mu00t(t, a, b)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
-                                         m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                         m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                         m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
+    pars$t <- t
+    dt <- t-t0
+    m00*exp(-1*mu00t(pars)*dt)/(m00*exp(-1*mu00t(pars)*dt) + 
+                                m01*exp(-1*mu01t(pars)*dt) + 
+                                m10*exp(-1*mu10t(pars)*dt) + 
+                                m11*exp(-1*mu11t(pars)*dt))
   }
   
   m01t <- function(t) {
-    m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
-                                                        m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                        m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                        m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
+    pars$t <- t
+    dt <- t-t0
+    m01*exp(-1*mu01t(pars)*dt)/(m00*exp(-1*mu00t(pars)*dt) + 
+                                    m01*exp(-1*mu01t(pars)*dt) + 
+                                    m10*exp(-1*mu10t(pars)*dt) + 
+                                    m11*exp(-1*mu11t(pars)*dt))
   }
   
   m11t <- function(t) {
-    m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
-                                                                m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                                m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                                m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
+    pars$t <- t
+    dt <- t-t0
+    m11*exp(-1*mu11t(pars)*dt)/(m00*exp(-1*mu00t(pars)*dt) + 
+                                    m01*exp(-1*mu01t(pars)*dt) + 
+                                    m10*exp(-1*mu10t(pars)*dt) + 
+                                    m11*exp(-1*mu11t(pars)*dt))
   }
   
   m10t <- function(t) {
-    m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0))/(m00*exp(-1*mu00t(t, a, b)*(t-t0)) + 
-                                                        m01*exp(-1*mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                        m10*exp(-1*mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(t-t0)) + 
-                                                        m11*exp(-1*mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(t-t0)))
+    pars$t <- t
+    dt <- t-t0
+    m10*exp(-1*mu10t(pars)*dt)/(m00*exp(-1*mu00t(pars)*dt) + 
+                               m01*exp(-1*mu01t(pars)*dt) + 
+                               m10*exp(-1*mu10t(pars)*dt) + 
+                               m11*exp(-1*mu11t(pars)*dt))
   }
   
-  t1 <- pars[7]
-  t2 <- pars[8]
+  t1 <- pars$t1
+  t2 <- pars$t2
   t0 <<- t1
   res <- matrix(ncol=11,nrow=0)
   
   k1carr <- 1/(m10 + m11) 
   k1non <- 1/(m01 + m00)
+  
   for(i in t1:t2) {
+    dt <- i - t1
+    pars$t <- i
     
-    k <- m00*exp(-1*mu00t(i, a, b)*(i-t1)) + 
-      m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-      m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-      m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1))
+    k <- m00*exp(-1*mu00t(pars)*dt) + m01*exp(-1*mu01t(pars)*dt) + m10*exp(-1*mu10t(pars)*dt) + m11*exp(-1*mu11t(pars)*dt)
     
-    m1t <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-              m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))/k
+    m1t <- (m10*exp(-1*mu10t(pars)*dt) + m11*exp(-1*mu11t(pars)*dt))/k
     
-    m2t <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-              m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))/k
+    m2t <- (m01*exp(-1*mu01t(pars)*dt) + m11*exp(-1*mu11t(pars)*dt))/k
     
-    S1carr <- (m10*exp(-1*mu10t(i, a, b, D1, H1, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-                 m11*exp(-1*mu11t(i, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)*(i-t1)))*k1carr
+    S1carr <- (m10*exp(-1*mu10t(pars)*dt) + m11*exp(-1*mu11t(pars)*dt))*k1carr
     
-    S1non <- (m01*exp(-1*mu01t(i, a, b, D2, H2, dcase, epistasis, c, R1, R2)*(i-t1)) + 
-                m00*exp(-1*mu00t(i, a, b)*(i-t1)))*k1non
+    S1non <- (m01*exp(-1*mu01t(pars)*dt) + m00*exp(-1*mu00t(pars)*dt))*k1non
     
     ld <- round(m11t(i) - (m10t(i) + m11t(i))*(m01t(i) + m11t(i)),8)
     
@@ -213,6 +225,7 @@ calc_gompertz <- function(pars) {
     q2 <- m10t(i) + m00t(i)
     
     denom <- p1*q1*p2*q2
+    
     if(!is.na(denom)) {
       if(denom != 0) {
         r2 <- round(ld^2/denom,8)
@@ -236,10 +249,11 @@ calc_gompertz <- function(pars) {
   dd$m=res
   
   tt <- t1:t2
-  dd[["mu10"]] <- mu10t(tt, a, b, D1, H1, dcase, epistasis, c, R1, R2)
-  dd[["mu11"]] <- mu11t(tt, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)
-  dd[["mu01"]] <- mu01t(tt, a, b, D2, H2, dcase, epistasis, c, R1, R2)
-  dd[["mu00"]] <- mu00t(tt, a, b)
+  pars$t <- tt
+  dd[["mu10"]] <- mu10t(pars)
+  dd[["mu11"]] <- mu11t(pars)
+  dd[["mu01"]] <- mu01t(pars)
+  dd[["mu00"]] <- mu00t(pars)
   
   dd
 }
@@ -303,17 +317,22 @@ shinyServer(function(input, output, session) {
   
   dataset <- reactive({
     saved <- loadData()
-    if(length(saved)!=0) {
-      updateSliderInput(session, "time", value=c(saved[dim(saved)[1],1],saved[dim(saved)[1],2]))
-      updateSliderInput(session, "slider1", value=saved[dim(saved)[1],3])
-      updateSliderInput(session, "slider2", value=saved[dim(saved)[1],4])
-      updateSliderInput(session, "slider3", value=saved[dim(saved)[1],5])
-      updateSliderInput(session, "slider4", value=saved[dim(saved)[1],6])
-      updateSliderInput(session, "mu00", value=saved[dim(saved)[1],7])
-      updateSliderInput(session, "H1", value=saved[dim(saved)[1],8])
-      updateSliderInput(session, "H2", value=saved[dim(saved)[1],9])
-      updateSliderInput(session, "D1", value=saved[dim(saved)[1],10])
-      updateSliderInput(session, "D2", value=saved[dim(saved)[1],11])
+    len.sav <- dim(saved)[1]
+    if(len.sav) {
+      updateSliderInput(session, "time", value=c(saved[len.sav,1],saved[len.sav,2]))
+      updateSliderInput(session, "slider1", value=saved[len.sav,3])
+      updateSliderInput(session, "slider2", value=saved[len.sav,4])
+      updateSliderInput(session, "slider3", value=saved[len.sav,5])
+      updateSliderInput(session, "slider4", value=saved[len.sav,6])
+      updateSliderInput(session, "mu00", value=saved[len.sav,7])
+      updateSliderInput(session, "H1", value=saved[len.sav,8])
+      updateSliderInput(session, "H2", value=saved[len.sav,9])
+      updateSliderInput(session, "D1", value=saved[len.sav,10])
+      updateSliderInput(session, "D2", value=saved[len.sav,11])
+      updateSliderInput(session, "epistasis", value=saved[len.sav,12])
+      updateSliderInput(session, "c", value=saved[len.sav,13])
+      updateSliderInput(session, "R1", value=saved[len.sav,14])
+      updateSliderInput(session, "R2", value=saved[len.sav,15])
     }
   })
   
@@ -326,21 +345,23 @@ shinyServer(function(input, output, session) {
     m11 <<- vals[4]
     
     if(input$gomp_mu00 == TRUE) {
+      
       amu00 <- input$a_mu00
       bmu00 <- input$b_mu00
     
       t1 <- input$time[1]
       t2 <- input$time[2]
-      
       if(input$constrained==F) {
-        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2, input$epistasis, input$c, input$R1, input$R2))
+        pars <- list(m00=m00, m01=m01, m10=m10, m11=m11, amu00=amu00, bmu00=bmu00, t1=t1, t2=t2, dcase=input$dcase, D1=input$D1, D2=input$D2, H1=input$H1, H2=input$H2, epistasis=input$epistasis, c=input$c, R1=input$R1, R2=input$R2)
+        dd <- calc_gompertz(pars)
         pvv1 <<- m10 + m11
         pvv2 <<- m01 + m11
       } else {
         m00 <<- 1 + m11 - pvv1 - pvv2
         m10 <<- pvv1 - m11
         m01 <<- pvv2 - m11
-        dd <- calc_gompertz(pars=c(m00, m01, m10, m11, amu00, bmu00, t1, t2, input$dcase, input$D1, input$D2, input$H1, input$H2, input$epistasis, input$c, input$R1, input$R2))
+        pars <- list(m00=m00, m01=m01, m10=m10, m11=m11, amu00=amu00, bmu00=bmu00, t1=t1, t2=t2, dcase=input$dcase, D1=input$D1, D2=input$D2, H1=input$H1, H2=input$H2, epistasis=input$epistasis, c=input$c, R1=input$R1, R2=input$R2)
+        dd <- calc_gompertz(pars)
       }
       
     } else {
@@ -367,16 +388,16 @@ shinyServer(function(input, output, session) {
       #-----------------#
     
       if(input$constrained==F) {
-      
-        dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
+        pars <- list(m00=m00, m01=m01, m10=m10, m11=m11, mu10=mu10, mu00=mu00, mu11=mu11, mu01=mu01, t1=t1, t2=t2)
+        dd <- calc(pars)
         pvv1 <<- m10 + m11
         pvv2 <<- m01 + m11
       } else {
         m00 <<- 1 + m11 - pvv1 - pvv2
         m10 <<- pvv1 - m11
         m01 <<- pvv2 - m11
-      
-        dd <- calc(pars=c(m00, m01, m10, m11, mu10, mu00, mu11, mu01, t1, t2))
+        pars <- list(m00=m00, m01=m01, m10=m10, m11=m11, mu10=mu10, mu00=mu00, mu11=mu11, mu01=mu01, t1=t1, t2=t2)
+        dd <- calc(pars)
       }
     
       dd$mu00 <- mu00
@@ -384,7 +405,7 @@ shinyServer(function(input, output, session) {
       dd$mu01 <- mu01
       dd$mu11 <- mu11
     }
-    
+    dd[["pars"]] <- pars
     dd
   })
   
@@ -410,7 +431,7 @@ shinyServer(function(input, output, session) {
       theme(legend.justification=c(1,0), legend.position=c(1, .5), legend.title=element_blank(), legend.text = element_text(size = 16))
       
     
-    ps = ggplot(data=data.frame(m), aes(t)) + theme_bw() +
+    ps <- ggplot(data=data.frame(m), aes(t)) + theme_bw() +
       geom_line(aes(y = S1carr,color='S1carr'),cex=2) +
       geom_line(aes(y = S1non, color="S1non"), linetype="dashed",cex=2) +
       xlab("t") + ylab("S(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
@@ -521,12 +542,14 @@ shinyServer(function(input, output, session) {
     c <- input$c
     R1 <- input$R1
     R2 <- input$R2
+    pars <- dd$pars
+    pars$t <- t1:t2
     
     if(input$gomp_mu00) {
-      mu00 <- unlist(lapply(t1:t2, function(t) {mu00t(t, a, b)}))
-      mu10 <- unlist(lapply(t1:t2, function(t) {mu10t(t, a, b, D1, H1, dcase, epistasis, c, R1, R2)}))
-      mu01 <- unlist(lapply(t1:t2, function(t) {mu01t(t, a, b, D2, H2, dcase, epistasis, c, R1, R2)}))
-      mu11 <- unlist(lapply(t1:t2, function(t) {mu11t(t, a, b, D1, D2, H1, H2, dcase, epistasis, c, R1, R2)}))
+      mu00 <- mu00t(pars)
+      mu10 <- mu10t(pars)
+      mu01 <- mu01t(pars)
+      mu11 <- mu11t(pars)
     } else {
       mu00 <- dd$mu00
       mu10 <- dd$mu10
@@ -633,8 +656,12 @@ shinyServer(function(input, output, session) {
       geom_line(aes(y = ld,color='D'),cex=2) + 
       geom_line(aes(y = r2,colour = 'r2'),cex=2) + 
       theme_bw() +
-      xlab("t") + ylab("D(t), r2(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1, .5), legend.title=element_blank(), legend.text = element_text(size = 16))
+      xlab("t") + ylab("D(t), r2(t)") + 
+      theme(axis.text=element_text(size=16), 
+            axis.title=element_text(size=22,face="bold")) +
+      theme(legend.justification=c(1,0), 
+            legend.position=c(1, .5), 
+            legend.title=element_blank(), legend.text = element_text(size = 16))
     
     if(save==F) {
       multiplot(pld, cols=cols, 
