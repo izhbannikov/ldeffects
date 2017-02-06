@@ -146,45 +146,23 @@ shinyServer(function(input, output, session) {
     dd <- data()
     m <- dd$m
     
-    pm1 <- ggplot(data=data.frame(m), aes(t)) + geom_line(aes(y = m1t,color='m1'),cex=2) + theme_bw() +
-      xlab("t") + ylab("m1,m2(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 16)) + 
-      geom_line(aes(y = m2t,color='m2', color='m2'),cex=2) + 
-      scale_colour_manual(values=c("red","blue4"))
-    
+    pm1 <- getPlotPM1(m, t)
+     
     # LD and r2:
     pld <- getPlotLD(m, t)
     ps <- getPlotPS(m, t)
     pmij <- getPlotPMIJ(m, t)
     
-      
+    
     if(save==F) {
-      multiplot(pm1, pld, ps, pmij, cols=cols, 
-              title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                          "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                          ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                          "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                          ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                          ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                          ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-              titlesize=12,titlefont="Courier", titleface=2)
+        multiplot(pm1, pld, ps, pmij, cols=cols, title=getTitleMPlot(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
     } else {
-      if(input$notitle_main==TRUE) { 
-             multiplot(pm1, pld, ps, pmij, cols=cols)
-      } 
-      else {
-             multiplot(pm1, pld, ps, pmij, cols=cols, 
-                       title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                                    "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                                    ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                                    "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                                    ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                                    ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                    ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                       titlesize=12,titlefont="Courier", titleface=2)
-      }
-      
-      
+        if(input$notitle_main==TRUE) { 
+            multiplot(pm1, pld, ps, pmij, cols=cols)
+        } 
+        else {
+            multiplot(pm1, pld, ps, pmij, cols=cols, title=getTitleMPlot(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
+        }
     }
   }
   
@@ -203,38 +181,18 @@ shinyServer(function(input, output, session) {
     } 
     mu <- cbind(t=t1:t2, mu1=mu1, mu0=mu0)
     
-    pmu <- ggplot(data=data.frame(mu), aes(t)) + geom_line(aes(y = mu1,color="mu1"),cex=2) + theme_bw() +
-      xlab("t") + ylab("mu1(t),mu0(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 16)) + 
-      scale_colour_manual(values=c("blue4","red")) +
-      geom_line(aes(y = mu0, color="mu0"), linetype="dashed", cex=2)
-      
+    pmu <- getPlotMu(mu, t)
     
     if(save==F) {
-      pmu <- pmu + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                     "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                     ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                     "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                     ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                     ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                     ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
-                  theme(plot.title = element_text(face="bold", family="Courier", size = 12))
-      pmu
-    } else {
-      
-      if(input$notitle_mortality==TRUE) { 
+        pmu <- pmu + ggtitle(getTitleMuPlot(pvv1, pvv2, m, input, dd)) + theme(plot.title = element_text(face="bold", family="Courier", size = 12))
         pmu
-      } 
-      else {
-        pmu <- pmu + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                                   "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                                   ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                                   "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                                   ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                                   ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                   ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
-          theme(plot.title = element_text(face="bold", family="Courier", size = 12))
-      }
+    } else {
+        if(input$notitle_mortality==TRUE) { 
+            pmu
+        } 
+        else {
+            pmu <- pmu + ggtitle(getTitleMuPlot(pvv1, pvv2, m, input, dd)) + theme(plot.title = element_text(face="bold", family="Courier", size = 12))
+        }
     }
   }
   
@@ -277,39 +235,18 @@ shinyServer(function(input, output, session) {
     } 
     
     mu <- cbind(t=t1:t2, mu00=mu00, mu10=mu10, mu01=mu01, mu11=mu11)
-    
-    pmu.ij=ggplot(data=data.frame(mu), aes(t)) + theme_bw() +
-      geom_line(aes(y = mu00,color='mu00', size=Mij),cex=2) +
-      geom_line(aes(y = mu01,color='mu01', size=Mij),cex=2) +
-      geom_line(aes(y = mu10,color='mu10', size=Mij),cex=2) +
-      geom_line(aes(y = mu11,color='mu11', size=Mij),cex=2) +
-      xlab("t") + ylab("muij(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.position=c(0.9, .5), legend.title=element_blank(), legend.text = element_text(size = 16))
+    pmu.ij <- getPlotMuIJ(mu, t)
     
     if(save==F) {
-      pmu.ij <- pmu.ij + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                                 "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                                 ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                                 "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                                 ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                                 ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                 ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
-        theme(plot.title = element_text(face="bold", family="Courier", size = 12))
-      pmu.ij
-    } else {
-      
-      if(input$notitle_mortality_hap==TRUE) { 
+        pmu.ij <- pmu.ij + ggtitle(getTitleMuPlot(pvv1, pvv2, m, input, dd)) + theme(plot.title = element_text(face="bold", family="Courier", size = 12))
         pmu.ij
+    } else {
+      if(input$notitle_mortality_hap==TRUE) { 
+          pmu.ij
       } 
       else {
-        pmu.ij <- pmu.ij + ggtitle(paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                                   "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                                   ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                                   "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                                   ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                                   ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                                   ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep="")) +
-          theme(plot.title = element_text(face="bold", family="Courier", size = 12))
+          pmu.ij <- pmu.ij + ggtitle(getTitleMuPlot(pvv1, pvv2, m, input, dd)) + theme(plot.title = element_text(face="bold", family="Courier", size = 12))
+          pmu.ij
       }
     }
   }
@@ -318,42 +255,17 @@ shinyServer(function(input, output, session) {
     
     dd <- data()
     m <- dd$m
-    
-    pmij=ggplot(data=data.frame(m), aes(t)) + theme_bw() +
-      geom_line(aes(y = m00,color='m00', size=Mij),cex=2) +
-      geom_line(aes(y = m01,color='m01', size=Mij),cex=2) +
-      geom_line(aes(y = m10,color='m10', size=Mij),cex=2) +
-      geom_line(aes(y = m11,color='m11', size=Mij),cex=2) +
-      xlab("t") + ylab("mij(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.position=c(0.9, .5), legend.title=element_blank(), legend.text = element_text(size = 16))
+    pmij <- getPlotPMIJ2(m, t)
     
     if(save==F) {
-      multiplot(pmij, cols=cols, 
-                title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                             "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                             ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                             "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                             ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                             ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                             ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                titlesize=12,titlefont="Courier", titleface=2)
+      multiplot(pmij, cols=cols, title=getMafPlotTitle(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
     } else {
       if(input$notitle_maf==TRUE) { 
         multiplot(pmij, cols=cols)
       } 
       else {
-        multiplot(pmij, cols=cols, 
-                  title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                               "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                               ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                               "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                               ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                               ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                               ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                  titlesize=12,titlefont="Courier", titleface=2)
+        multiplot(pmij, cols=cols, title=getMafPlotTitle(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
       }
-      
-      
     }
   }
   
@@ -363,42 +275,16 @@ shinyServer(function(input, output, session) {
     m <- dd$m
     
     # LD and r2:
-    
-    pld <- ggplot(data=data.frame(m), aes(t)) + 
-      geom_line(aes(y = ld,color='D'),cex=2) + 
-      geom_line(aes(y = r2,colour = 'r2'),cex=2) + 
-      theme_bw() +
-      xlab("t") + ylab("D(t), r2(t)") + 
-      theme(axis.text=element_text(size=16), 
-            axis.title=element_text(size=22,face="bold")) +
-      theme(legend.justification=c(1,0), 
-            legend.position=c(1, .5), 
-            legend.title=element_blank(), legend.text = element_text(size = 16))
+    pld <- getLDPlot(m,t)
     
     if(save==F) {
-      multiplot(pld, cols=cols, 
-                title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                             "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                             ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                             "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                             ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                             ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                             ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                titlesize=12,titlefont="Courier", titleface=2)
+      multiplot(pld, cols=cols, title=getMafPlotTitle(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
     } else {
       if(input$notitle_ld==TRUE) { 
         multiplot(pld, cols=cols)
       } 
       else {
-        multiplot(pld, cols=cols, 
-                  title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                               "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                               ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                               "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                               ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                               ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                               ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                  titlesize=12,titlefont="Courier", titleface=2)
+        multiplot(pld, cols=cols, title=getMafPlotTitle(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
       }
     }
   }
@@ -409,37 +295,16 @@ shinyServer(function(input, output, session) {
     m <- dd$m
     
     # Survival:
-    ps <- ggplot(data=data.frame(m), aes(t)) + theme_bw() +
-      geom_line(aes(y = S1carr,color='S1carr'),cex=2) +
-      geom_line(aes(y = S1non, color="S1non"), linetype="dashed",cex=2) +
-      xlab("t") + ylab("S(t)") + theme(axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")) +
-      theme(legend.justification=c(1,0), legend.position=c(1,0.5), legend.title=element_blank(), legend.text = element_text(size = 16)) +
-      scale_colour_manual(values=c("red","blue4"))
+    ps <- getPlotPS(m,t)
     
     if(save==F) {
-      multiplot(ps, cols=cols, 
-                title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                             "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                             ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                             "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                             ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                             ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                             ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                titlesize=12,titlefont="Courier", titleface=2)
+      multiplot(ps, cols=cols, title=getTitleMPlot(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
     } else {
       if(input$notitle_surv==TRUE) { 
         multiplot(ps, cols=cols)
       } 
       else {
-        multiplot(ps, cols=cols, 
-                  title= paste("P(V1=1)=",round(pvv1,3), "; P(V2=1)=",round(pvv2,3),
-                               "; m1(t0) = ", round(m[,"m1t"][1],3), "; m2(t0) = ", round(m[,"m2t"][1],3), "; LD(t0) = ", round(m[,"ld"][1],3),
-                               ";\nm00(t0) = ", round(m[,"m00"][1],3), "; m01(t0) = ", round(m[,"m01"][1],3),
-                               "; m10(t0) = ", round(m[,"m10"][1],3), "; m11(t0) = ", round(m[,"m11"][1],3),
-                               ifelse(input$dcase==F, paste(";\nH1 =", round(input$H1,3)), paste(";\nD1 =", round(input$D1,3))), 
-                               ifelse(input$dcase==F, paste("; H2 =", round(input$H2,3)), paste("; D2 =",round(input$D2,3))),
-                               ifelse(input$gomp_mu00==FALSE, paste(";\nmu00 = ", round(dd$mu00,3), "; mu10 = ", round(dd$mu10,3), "; mu01 = ", round(dd$mu01,3), "; mu11 = ", round(dd$mu11,3), sep=""), ""), sep=""),
-                  titlesize=12,titlefont="Courier", titleface=2)
+        multiplot(ps, cols=cols, title=getTitleMPlot(pvv1, pvv2, m, input, dd), titlesize=12,titlefont="Courier", titleface=2)
       }
     }
   }
