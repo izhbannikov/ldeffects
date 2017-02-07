@@ -109,8 +109,8 @@ shinyServer(function(input, output, session) {
       }
       
       if(input$epistasis) {
-        mu10 <- mu00 + input$R2
-        mu01 <- mu00 + input$R1
+        mu10 <- mu00 + input$R1
+        mu01 <- mu00 + input$R2
         mu11 <- mu00 + input$R1 + input$R2 + input$c*input$R1*input$R2
       }
     

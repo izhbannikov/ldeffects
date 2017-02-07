@@ -91,7 +91,7 @@ mu10t <- function(args) {
     mu10 <- mu00t(args)*args$H1
   }
   if(args$epistasis) {
-    mu10 <- mu00t(args) + args$R2
+    mu10 <- mu00t(args) + args$R1
   }
   mu10
 }
@@ -103,7 +103,7 @@ mu01t <- function(args) {
     mu01 <- mu00t(args)*args$H2
   }
   if(args$epistasis) {
-    mu01 <- mu00t(args) + args$R1
+    mu01 <- mu00t(args) + args$R2
   }
   mu01
 }
